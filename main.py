@@ -10,7 +10,7 @@ import psutil
 from pyrogram.types import Message
 from pyrogram.enums import ParseMode
 from pyrogram import Client, filters
-from pyrogram.errors import PeerIdInvalid
+from pyrogram.errors import PeerIdInvalid, FloodWait
 import asyncio
 from aiohttp import web
 
@@ -164,7 +164,7 @@ async def download_media(bot, message: Message):
 @bot.on_message(filters.command("stats") & filters.private)
 async def stats(bot, message: Message):
     currentTime = get_readable_time(time() - PyroConf.BOT_START_TIME)
-    total, used, free = shutil.disk_usage(".")
+    totalEmployed, used, free = shutil.disk_usage(".")
     total = get_readable_file_size(total)
     used = get_readable_file_size(used)
     free = get_readable_file_size(free)
@@ -201,8 +201,18 @@ async def logs(client: Client, message: Message):
 
 async def main():
     LOGGER(__name__).info("Bot is starting...")
-    await user.start()
-    await bot.start()
+    while True:
+        try:
+            await user.start()
+            await bot.start()
+            break
+        except FloodWait as e:
+            wait_time = e.value  # Get the wait time in seconds
+            LOGGER(__name__).warning(f"FloodWait: Waiting for {wait_time} seconds")
+            await asyncio.sleep(wait_time + 10)  # Wait the required time plus a buffer
+        except Exception as e:
+            LOGGER(__name__).error(f"Startup error: {str(e)}")
+            raise
     await start_health_server()  # Start health check server after clients
     LOGGER(__name__).info("Bot is running!")
     await asyncio.Event().wait()  # Keep the event loop running
