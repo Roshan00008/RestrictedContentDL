@@ -4,6 +4,7 @@
 import os
 from time import time
 from typing import Optional
+import re
 
 from pyleaves import Leaves
 from pyrogram.parser import Parser
@@ -271,3 +272,29 @@ async def processMediaGroup(user, chat_id, message_id, bot, message):
         if os.path.exists(path):
             os.remove(path)
     return False
+
+
+# Helper function to process batch URLs
+def process_batch_links(links: list):
+    all_posts = []
+
+    for link in links:
+        # Check if the link is a range (e.g., 1001-1010)
+        if '-' in link:
+            try:
+                # Extract the range and process each number in the range
+                match = re.match(r"(https?://t.me/[^/]+/)(\d+)-(\d+)", link)
+                if match:
+                    base_url, start_id, end_id = match.groups()
+                    start_id, end_id = int(start_id), int(end_id)
+                    for msg_id in range(start_id, end_id + 1):
+                        all_posts.append(f"{base_url}{msg_id}")
+                else:
+                    raise ValueError(f"Invalid range format: {link}")
+            except Exception as e:
+                LOGGER(__name__).info(f"Error processing range: {str(e)}")
+                continue
+        else:
+            all_posts.append(link)
+
+    return all_posts
