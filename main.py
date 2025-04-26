@@ -34,7 +34,10 @@ async def health_check(request):
 async def start_health_server():
     LOGGER(__name__).info("Starting health check server on port 8000")
     app = web.Application()
-    app.add_routes([web.get('/health', health_check)])
+    app.add_routes([
+        web.get('/health', health_check),
+        web.get('/', lambda request: web.Response(text="RestrictedContentDL Bot Health Check: Use /health"))
+    ])
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', 8000)
@@ -164,7 +167,7 @@ async def download_media(bot, message: Message):
 @bot.on_message(filters.command("stats") & filters.private)
 async def stats(bot, message: Message):
     currentTime = get_readable_time(time() - PyroConf.BOT_START_TIME)
-    totalEmployed, used, free = shutil.disk_usage(".")
+    total, used, free = shutil.disk_usage(".")
     total = get_readable_file_size(total)
     used = get_readable_file_size(used)
     free = get_readable_file_size(free)
@@ -207,16 +210,19 @@ async def main():
             await bot.start()
             break
         except FloodWait as e:
-            wait_time = e.value  # Get the wait time in seconds
+            wait_time = e.value
             LOGGER(__name__).warning(f"FloodWait: Waiting for {wait_time} seconds")
-            await asyncio.sleep(wait_time + 10)  # Wait the required time plus a buffer
+            await asyncio.sleep(wait_time + 10)
         except Exception as e:
             LOGGER(__name__).error(f"Startup error: {str(e)}")
             raise
-    await start_health_server()  # Start health check server after clients
+    await asyncio.sleep(5)  # Delay to ensure bot is fully initialized
+    await start_health_server()
     LOGGER(__name__).info("Bot is running!")
-    await asyncio.Event().wait()  # Keep the event loop running
+    await asyncio.Event().wait()
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+
