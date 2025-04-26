@@ -29,3 +29,14 @@ class PyroConf(object):
     BOT_TOKEN = getenv("BOT_TOKEN")
     SESSION_STRING = getenv("SESSION_STRING")
     BOT_START_TIME = time()
+    class PyroConf:
+    # Existing configurations
+    API_ID = "your_api_id"
+    API_HASH = "your_api_hash"
+    BOT_TOKEN = "your_bot_token"
+    SESSION_STRING = "your_user_session_string"
+
+    # No file size or batch size limits
+    MAX_FILE_SIZE = None  # No limit
+    MAX_BATCH_SIZE = None  # No batch size limit
+
