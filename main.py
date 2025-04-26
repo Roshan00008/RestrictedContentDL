@@ -12,7 +12,7 @@ from pyrogram.enums import ParseMode
 from pyrogram import Client, filters
 from pyrogram.errors import PeerIdInvalid
 import asyncio
-from aiohttp import web  # Added for health check server
+from aiohttp import web
 
 from helpers.utils import (
     processMediaGroup,
@@ -199,9 +199,14 @@ async def logs(client: Client, message: Message):
         await message.reply("**Not exists**")
 
 
-if __name__ == "__main__":
+async def main():
     LOGGER(__name__).info("Bot is starting...")
-    asyncio.create_task(start_health_server())  # Start health check server
-    user.start()
-    bot.run()
+    await user.start()
+    await bot.start()
+    await start_health_server()  # Start health check server after clients
     LOGGER(__name__).info("Bot is running!")
+    await asyncio.Event().wait()  # Keep the event loop running
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
