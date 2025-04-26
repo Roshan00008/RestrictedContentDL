@@ -11,6 +11,8 @@ from pyrogram.types import Message
 from pyrogram.enums import ParseMode
 from pyrogram import Client, filters
 from pyrogram.errors import PeerIdInvalid
+import asyncio
+from aiohttp import web  # Added for health check server
 
 from helpers.utils import (
     processMediaGroup,
@@ -24,6 +26,20 @@ from helpers.utils import (
 
 from config import PyroConf
 from logger import LOGGER
+
+# Health check server code
+async def health_check(request):
+    return web.Response(text="OK")
+
+async def start_health_server():
+    LOGGER(__name__).info("Starting health check server on port 8000")
+    app = web.Application()
+    app.add_routes([web.get('/health', health_check)])
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', 8000)
+    await site.start()
+    LOGGER(__name__).info("Health check server started")
 
 # Initialize the bot client
 bot = Client(
@@ -185,6 +201,7 @@ async def logs(client: Client, message: Message):
 
 if __name__ == "__main__":
     LOGGER(__name__).info("Bot is starting...")
+    asyncio.create_task(start_health_server())  # Start health check server
     user.start()
     bot.run()
     LOGGER(__name__).info("Bot is running!")
