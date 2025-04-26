@@ -7,7 +7,7 @@ RUN apt-get update && apt-get upgrade -y && \
     rm -rf /var/lib/apt/lists/*
 
 # Set timezone
-ENV TZ=Asia/Dhaka
+ENV TZ=Asia/Manila
 
 # Upgrade pip and install wheel
 RUN pip install --no-cache-dir -U pip wheel==0.45.1
